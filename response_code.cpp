@@ -53,6 +53,7 @@ char *define_type(char *name){
 	return type;
 }
 
+
 int if_exist(char *name){
 	int marker = open(name, O_RDONLY);
 	if (marker == -1)
