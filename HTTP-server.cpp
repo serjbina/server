@@ -2,6 +2,7 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <time.h>
 
 #include "service_classes.cpp"
 
@@ -14,11 +15,88 @@ char * define_type(char * name); //Определяет тип запрошен�
 int if_exist(char *name); //Возвращает 1 в случае наличия файла в директории, 0 - иначе
 int if_availible(char *name); //Возвращает 1 в случае наличия прав доступа к файлу, 0 - иначе
 
+int if_exist(char *name){
+	int marker = open(name, O_RDONLY);
+	if (marker == -1)
+		return 0;
+	else{
+		close(marker);
+		return 1;
+	}
+}
+
+
+void Nowatime(stringstream resp){
+		resp << "Date: ";
+		time_t rawtime;
+ 		struct tm * timeinfo;
+ 		time ( &rawtime );
+ 		timeinfo = localtime ( &rawtime );
+ 		resp << asctime(timeinfo);
+}
+
+
+void response(int code, char* name, IOSocket *pSocket){
+	stringstream resp;;
+
+
+	if (code == 404){
+		resp << "HTTP/1.1 404 Not Found \r\n"<<"Server: Model HTTP Server/0.1\r\n";
+		//Nowatime(resp);
+
+		resp << "Date: ";
+		time_t rawtime;
+ 		struct tm * timeinfo;
+ 		time ( &rawtime );
+ 		timeinfo = localtime ( &rawtime );
+ 		resp << asctime(timeinfo);
+
+
+		int f = open("404.html", O_RDONLY);
+ 		resp <<"Content-type: text/html\r\n";
+ 		resp <<"Content-length: " << lseek(f,0,2) << "\r\n\r\n";
+ 		//printf("\r\n");
+ 		pSocket->Send(resp.str().c_str(), resp.str().size());
+
+ 		char buff[50];
+ 		lseek(f,0,0);
+ 		int k;
+ 		while(k = read(f, buff, 50)){
+ 			pSocket->Send(buff, k);
+ 		}
+	}
+	else if(code == 200){
+
+		resp << "HTTP/1.1 200 OK \r\n"<<"Server: Model HTTP Server/0.1\r\n";
+		//Nowatime(resp);
+
+		resp << "Date: ";
+		time_t rawtime;
+ 		struct tm * timeinfo;
+ 		time ( &rawtime );
+ 		timeinfo = localtime ( &rawtime );
+ 		resp << asctime(timeinfo);
+
+		int f = open(name, O_RDONLY);
+ 		resp <<"Content-type: "<< define_type(name) <<" \r\n";
+ 		resp <<"Content-length: " << lseek(f,0,2) << "\r\n\r\n";
+ 		//printf("\r\n");
+ 		pSocket->Send(resp.str().c_str(), resp.str().size());
+
+ 		char buff[50];
+ 		lseek(f,0,0);
+ 		int k;
+ 		while(k = read(f, buff, 50)){
+ 			pSocket->Send(buff, k);
+ 		}
+	}
+
+}
 
 class MySocket: public ServerSocket {
 protected:
 
-	
+
 	virtual void OnAccept(IOSocket *pSocket) {
 		
 		char buff[256];
@@ -28,6 +106,10 @@ protected:
 		char * target_name = find_name(buff);
 		char * target_type = define_type(target_name);
 
+		if (if_exist(target_name)){
+			printf("All Good in the HOOD\n");
+			response(200, target_name, pSocket);
+		}
 		/*if(if_exist(target_name){
 			if(if_availible(target_name)){
 				// Файл существует и доступен. Открыть и послать файл.
