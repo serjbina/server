@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <fcntl.h>
+#include <sys/wait.h>
 
 char* find_name(char * buff)
 {
@@ -54,6 +55,18 @@ char *define_type(char *name){
 }
 
 
+void make_dir_list(void){
+	int pid;
+	if(pid = fork()){
+		execlp("ls", "ls", "-R", "-l", NULL);
+		printf("Exec failed!\n");
+	}
+	else
+	{
+		wait(NULL);
+	}
+}
+
 int if_exist(char *name){
 	int marker = open(name, O_RDONLY);
 	if (marker == -1)
@@ -62,4 +75,10 @@ int if_exist(char *name){
 		close(marker);
 		return 1;
 	}
+}
+
+int main(int argc, char const *argv[])
+{
+	make_dir_list();
+	return 0;
 }

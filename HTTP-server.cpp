@@ -90,24 +90,6 @@ void Run(ServerSocket *pSocket) {
 	}
 }
 
-void ServerSocket::Accept(void) {
-	printf("Accept done\n");
-	int sd;
-	
-	sd = accept(_sd, NULL, NULL);
-	if(sd < 0) 
-		printf("error\n");
-	if(!fork()){
-		IOSocket *pSocket = new IOSocket(sd);
-		OnAccept(pSocket);
-	}
-	else{
-		close(sd);
- 	}
-}
-
-
-
 
 int main() {
 
