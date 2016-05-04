@@ -39,6 +39,11 @@ void response(int code, char* name, IOSocket *pSocket){
 		myname << "responses/403.html";
 		type << "text/html";
 	}
+	else if (code == 500){
+		descript << "500 Internal Server Error";
+		myname <<  "responses/500.html";
+		type << "text/html";
+	}
 	else if (code == 501){
 		descript << "501 Not Implemented";
 		myname << "responses/501.html";
@@ -166,8 +171,10 @@ char * CGI(char * target_name, char *target_type, char * buff){ //Возвращ
 				else{
 						wait(&status);
 						close(op);
-						if(status != 0)
+						if(status != 0){
+							unlink(namedup);
 							return (char *) "Error_in_CGI";						 
+						}
 					}
 				return namedup;
 }
