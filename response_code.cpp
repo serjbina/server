@@ -5,7 +5,10 @@
 #include <fcntl.h>
 #include <sys/wait.h>
 
-#include <errno.h>
+
+#include <string>
+#include <iostream>
+#include <sstream>
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -30,14 +33,14 @@ char* find_name(char * buff)
 		*p = '\0';
 
 		if (!strcmp(name, "HTTP/1.1\r\nHost:"))
-			name = "index.html";
+			name = (char *) "index.html";
 
 		return name;
 
 }
 
-char *define_type(char *name){
-	char *p = name;
+char *define_type( char *name){
+	char *p = (char *) name;
 	while (*p != '.')
 		p++;
 	p++;
@@ -49,13 +52,20 @@ char *define_type(char *name){
 		p++;
 	}
 	*a = '\0';
+
+	
 	char *type = (char*) malloc (12*sizeof(char));
+	//string type;
 	if(!strcmp(buff, "html"))
-		type = "text/html";
+		type =  (char *) "text/html";
 	else if(!strcmp(buff, "jpeg") or (!strcmp(buff, "jpg")))
-		type = "image/jpeg";		
-	else
-		type = "text/plain";
+		type = (char *) "image/jpeg";
+	else if(!strcmp(buff, "png"))
+		type = (char *) "image/png";		
+	else if(!strcmp(buff, "txt"))
+		type = (char *) "text/plain";
+	else 
+		type = (char *) "Not/Implemented";
 	return type;
 }
 
