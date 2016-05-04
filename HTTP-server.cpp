@@ -9,7 +9,7 @@
 #include "response_code.h" //Содержит заголовочные файлы функций, определяющих код ответа
 #include "service_classes.cpp" //Содержит описание служебных классов
 
-#define BUFFSIZE 256
+#define BUFFSIZE 1024
 
 using namespace std;
 
@@ -63,8 +63,8 @@ void response(int code, char* name, IOSocket *pSocket){
  		}
  		close(f);
 
- 		if (code == 201)
- 			unlink(name);
+ 		//if (code == 201)
+ 			//unlink(name);
 }
 
 
@@ -73,10 +73,10 @@ char * CGI(char * target_name, char *target_type, char * buff){ //Возвращ
 	char tempfile[PATH_MAX] = "iXXXXXX";
 	mktemp(tempfile);
 	int op = open(tempfile,O_RDWR | O_CREAT, 0666);
-	printf("Current tempfile name = %s\n",tempfile);		
+	printf("Current tempfile name = %s\n", tempfile);		
 					
-			if(strstr(buff,"cgi-bin") != NULL)
-			{	
+			//if(strstr(buff,"cgi-bin") != NULL)
+			//{	printf("Hello\n");
 				char *cgipar[16];
 				for (int i = 0; i <= 15; i++)
 					cgipar[i] = (char*) malloc (128*sizeof(char));
@@ -132,17 +132,18 @@ char * CGI(char * target_name, char *target_type, char * buff){ //Возвращ
 				strcat(cgipar[13],bufferpath);
 				strcpy(cgipar[14],"HTTP_REFERER=http://localhost:8080/testpage.html");
 				
-				for (int y=0;y<15;y++)
-				printf("%s\n",cgipar[y]);
-				extern int errno;
-								
-}
+				for(int y=0; y<15; y++)
+					printf("%s\n",cgipar[y]);
+
+	//}
+
+	return (char *) tempfile;
+
 }
 
 class MySocket: public ServerSocket{
 protected:
 	virtual void OnAccept(IOSocket *pSocket){
-		printf("Hello\n");
 		
 		char buff[BUFFSIZE];
 		int n = pSocket->Receive(buff, sizeof(buff)-1);

@@ -25,11 +25,16 @@ char* find_name(char * buff)
 			buff++;
 
 		while(*buff != ' '){				
+			if (*buff == '?'){
+				*p = *buff;
+				p++;
+				buff++;
+				break;
+			}
+
 			*p = *buff;
 			p++;
 			buff++;
-			if (*buff == '?')
-				break;
 		}
 
 		*p = '\0';
@@ -44,7 +49,7 @@ char* find_name(char * buff)
 char *define_type( char *name){
 	char *p = (char *) name;
 	char *type = (char*) malloc (12*sizeof(char));
-	while (*p != '.' || *p != '?')
+	while (*p != '.' && *p != '?')
 		p++;
 
 	if(*p == '?'){
