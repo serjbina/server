@@ -20,8 +20,6 @@ void response(int code, char* name, IOSocket *pSocket){
  	timeinfo = localtime(&rawtime);
 
  	stringstream descript, myname, type;
- 	//char *descript = (char*) malloc(BUFFSIZE*sizeof(char));
- 	//char *myname = (char*) malloc(BUFFSIZE*sizeof(char));
 
 	if (code == 404){
 		descript << "404 Not Found";
@@ -46,6 +44,9 @@ void response(int code, char* name, IOSocket *pSocket){
 
 		resp << "HTTP/1.1 "<< descript <<" \r\n"; 
 		resp << "Server: Model HTTP Server/0.1\r\n";
+		if (code == 501)
+			resp << "Allow: GET,HEAD\r\n";
+		
 		resp << "Date: ";
  		resp << asctime(timeinfo);
 		int f = open(myname.str().c_str(), O_RDONLY);
@@ -59,14 +60,10 @@ void response(int code, char* name, IOSocket *pSocket){
  			pSocket->Send(buff, k);
  		}
  		close(f);
-
-
 }
 
-class MySocket: public ServerSocket {
+class MySocket: public ServerSocket{
 protected:
-
-
 	virtual void OnAccept(IOSocket *pSocket) {
 		
 		char buff[BUFFSIZE];
@@ -91,7 +88,6 @@ protected:
 		printf("Respone code = %d, Required name = %s, Type = %s\n", r_code, target_name, target_type);
 		response(r_code, target_name, pSocket);
 		printf("Responsed succesfully\n");
-			
 		delete pSocket;		
 	}
 };
@@ -105,7 +101,7 @@ void Run(ServerSocket *pSocket) {
 }
 
 
-int main() {
+int main(){
 
 	MySocket s;
 	SocketAddress a("localhost", 8080);
