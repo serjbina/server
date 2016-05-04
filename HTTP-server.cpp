@@ -5,6 +5,7 @@
 #include <time.h>
 #include <unistd.h>
 #include <limits.h>
+#include <errno.h>
 
 #include "response_code.h" //Содержит заголовочные файлы функций, определяющих код ответа
 #include "service_classes.cpp" //Содержит описание служебных классов
@@ -153,7 +154,21 @@ char * CGI(char * target_name, char *target_type, char * buff){ //Возвращ
 				for(int y=0; y<15; y++)
 					printf("%s\n",cgipar[y]);
 
-
+				int status;
+				if(!fork())
+				{	
+					close(1);
+					dup2(op,1); 
+					execvpe(PathName,(char* const *)NULL,(char * const *)cgipar);
+					fprintf(stderr, "Error on exec %s\n",strerror(errno));
+					exit(5);
+				}
+				else{
+						wait(&status);
+						close(op);
+						if(status != 0)
+							return (char *) "Error_in_CGI";						 
+					}
 				return namedup;
 }
 
@@ -185,6 +200,10 @@ protected:
 			printf("CGI is running\n");
 			r_code = 201;
 			target_name = CGI(target_name, target_type, buff);
+			if (!strcmp(target_name, "Error_in_CGI"))
+				r_code = 500;
+			else
+				r_code = 201;
 		}
 		
 		printf("Respone code = %d, Required name = %s, Type = %s\n", r_code, target_name, target_type);
