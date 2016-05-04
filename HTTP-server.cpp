@@ -14,16 +14,21 @@
 
 using namespace std;
 
-void response(int code, char* name, IOSocket *pSocket){
-	stringstream resp;
-
+char *CurrentTime(){ //Возвращает текущее время
 	time_t rawtime;
  	struct tm * timeinfo;
  	time(&rawtime);
  	timeinfo = localtime(&rawtime);
+	return asctime(timeinfo);
 
+}
+
+void response(int code, char* name, IOSocket *pSocket){
+	
+	stringstream resp;
  	stringstream descript, myname, type;
 
+// Заполнение основных заголовков по коду
 	if (code == 404){
 		descript << "404 Not Found";
 		myname << "responses/404.html";
@@ -50,20 +55,27 @@ void response(int code, char* name, IOSocket *pSocket){
 		type << "text/plain";
 	}
 
+//Сборка ответа в поток resp
 		resp << "HTTP/1.1 "<< descript <<" \r\n"; 
 		resp << "Server: Model HTTP Server/0.1\r\n";
+		
 		if (code == 501)
 			resp << "Allow: GET,HEAD\r\n";
-
-		resp << "Date: ";
- 		resp << asctime(timeinfo);
-		int f = open(myname.str().c_str(), O_RDONLY);
+		
+		resp << "Date: " << CurrentTime();
  		resp <<"Content-type: "<< type << " \r\n";
+
+//Определение размера тела ответа
+		int f = open(myname.str().c_str(), O_RDONLY);
  		resp <<"Content-length: " << lseek(f,0,2) << "\r\n\r\n";
- 		pSocket->Send(resp.str().c_str(), resp.str().size());
- 		char buff[BUFFSIZE];
  		lseek(f,0,0);
+
+//Передача заголовков в сокет
+ 		pSocket->Send(resp.str().c_str(), resp.str().size());
+ 		
+//Передача тела запроса в сокет 		
  		int k;
+ 		char buff[BUFFSIZE];
  		while(k = read(f, buff, BUFFSIZE)){
  			pSocket->Send(buff, k);
  		}
