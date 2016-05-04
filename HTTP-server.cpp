@@ -28,7 +28,7 @@ void response(int code, char* name, IOSocket *pSocket){
 		myname << "responses/404.html";
 		type << "text/html";
 	}
-	else if(code == 200 ){//|| code == 201){
+	else if(code == 200 || code == 201){
 		descript << "200 OK";
 		myname << name;
 		type << define_type(name);
@@ -63,8 +63,8 @@ void response(int code, char* name, IOSocket *pSocket){
  		}
  		close(f);
 
- 		//if (code == 201)
- 			//unlink(name);
+ 		if (code == 201)
+ 			unlink(name);
 }
 
 
@@ -72,11 +72,32 @@ char * CGI(char * target_name, char *target_type, char * buff){ //Возвращ
 
 	char tempfile[PATH_MAX] = "iXXXXXX";
 	mktemp(tempfile);
-	int op = open(tempfile,O_RDWR | O_CREAT, 0666);
+	char *namedup = tempfile;
+	int op = open(tempfile, O_RDWR | O_CREAT, 0666);
 	printf("Current tempfile name = %s\n", tempfile);		
 					
-			//if(strstr(buff,"cgi-bin") != NULL)
-			//{	printf("Hello\n");
+				int i=0;
+				char *AgentStart = strstr(buff, "User-Agent:");
+				AgentStart += 12;
+				char *AgentStop = strstr(buff, "Accept");
+				char Agent[256];
+				while (AgentStart != AgentStop){
+					Agent[i] = *AgentStart;
+					i++;
+					AgentStart++;
+				}
+				Agent[i] = '\0';
+
+				char *QueryStart = strstr(buff, "cgi-bin");
+				char Query[256];
+				i = 0;
+				while (*QueryStart != ' '){
+					Query[i] = *QueryStart;
+					QueryStart++;
+					i++;
+				}
+				Query[i] = '\0';
+
 				char *cgipar[16];
 				for (int i = 0; i <= 15; i++)
 					cgipar[i] = (char*) malloc (128*sizeof(char));
@@ -92,9 +113,9 @@ char * CGI(char * target_name, char *target_type, char * buff){ //Возвращ
 				strcpy(cgipar[6],"SERVER_PROTOCOL=HTTP/1.1");
 				strcpy(cgipar[7],"SERVER_SOFTWARE=Apache/1.3.12(Unix) PHP/3.0.17");
 				strcpy(cgipar[8],"HTTP_USER_AGENT=");
-				strcat(cgipar[8],"FIREFOX");
+				strcat(cgipar[8], Agent);
 				strcpy(cgipar[9],"QUERY_STRING=");
-				strcat(cgipar[9],buff);
+				strcat(cgipar[9],Query);
 				
 			char PathName[PATH_MAX];
 			char *PN;
@@ -106,39 +127,34 @@ char * CGI(char * target_name, char *target_type, char * buff){ //Возвращ
 				strcpy(cgipar[10],"DOCUMENT_ROOT=");
 				strcat(cgipar[10],PathName);
 			}
-			//strcpy(cgipar[11],"/0");
 			
-				char bufferpath[50],bufferparam[50];
-				int u = 0;
-				while((buff[u] != '?') && (buff[u] != ' '))
-				//while((buffer2[u] != '?'))	
-				{
-					bufferpath[u]=buff[u];
-					u++;
+				char *ScriptNameStart = strstr(buff, "cgi-bin");
+				char *ScriptNameFinish = strstr(buff, "?");
+				char ScriptName[256];
+				i = 0;
+				while (ScriptNameStart != ScriptNameFinish){
+					ScriptName[i] = *ScriptNameStart;
+					ScriptNameStart++;
+					i++;
 				}
-				bufferpath[u]=0;
-				strcat(bufferparam,"/");
-				strcat(bufferparam,bufferpath);
-				printf("%s\n",bufferpath);
-				strcat(PathName,"/");
-				strcat(PathName,bufferpath);
-				printf("%s\n",PathName);
+				ScriptName[i] = '\0';
 				
+				strcat(PathName, "/");
+				strcat(PathName, ScriptName);
+
 				strcpy(cgipar[11],"SCRIPT_FILENAME=");
 				strcat(cgipar[11],PathName);
 				strcpy(cgipar[12],"CONTENT_TYPE=");
-				strcat(cgipar[12],target_type);
+				strcat(cgipar[12],"text/plain");
 				strcpy(cgipar[13],"SCRIPT_NAME=");
-				strcat(cgipar[13],bufferpath);
+				strcat(cgipar[13],ScriptName);
 				strcpy(cgipar[14],"HTTP_REFERER=http://localhost:8080/testpage.html");
 				
 				for(int y=0; y<15; y++)
 					printf("%s\n",cgipar[y]);
 
-	//}
 
-	return (char *) tempfile;
-
+				return namedup;
 }
 
 class MySocket: public ServerSocket{
