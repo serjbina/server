@@ -77,10 +77,9 @@ void response(int code, char* name, IOSocket *pSocket){
 char * CGI(char * target_name, char *target_type, char * buff){ //Возвращает имя файла, в котором содержится результат работы CGI-программы
 
 	char tempfile[PATH_MAX] = "iXXXXXX";
-	mktemp(tempfile);
+	mkstemp(tempfile);
 	char *namedup = tempfile;
 	int op = open(tempfile, O_RDWR | O_CREAT, 0666);
-	printf("Current tempfile name = %s\n", tempfile);		
 					
 				int i=0;
 				char *AgentStart = strstr(buff, "User-Agent:");
@@ -126,7 +125,7 @@ char * CGI(char * target_name, char *target_type, char * buff){ //Возвращ
 			char PathName[PATH_MAX];
 			char *PN;
 
-			PN = getwd(PathName);
+			PN = getcwd(PathName, PATH_MAX);
 
 			if (PN == NULL) printf("Ошибка определения пути\n");
 			else{
@@ -154,28 +153,31 @@ char * CGI(char * target_name, char *target_type, char * buff){ //Возвращ
 				strcat(cgipar[12],"text/plain");
 				strcpy(cgipar[13],"SCRIPT_NAME=");
 				strcat(cgipar[13],ScriptName);
+				printf("Script Name = %s\n", ScriptName);
 				strcpy(cgipar[14],"HTTP_REFERER=http://localhost:8080/testpage.html");
 				
-				for(int y=0; y<15; y++)
-					printf("%s\n",cgipar[y]);
+				//for(int y=0; y<15; y++)
+				//	printf("%s\n",cgipar[y]);
 
 				int status;
 				int pid;
 				if(!(pid = fork()))
 				{	
-					printf("%d\n", getpid());
 					close(1);
 					
 					dup2(op,1); 
+
+					char **argv = (char **) malloc (2*sizeof(char*));
+					argv[1] = NULL;
+					argv[0] = ScriptName;
 					
-					execvpe(PathName,(char* const *)NULL,(char * const *)cgipar);
+					execvpe(PathName,argv,(char * const *)cgipar);
 					fprintf(stderr, "Error on exec %s\n",strerror(errno));
 					exit(5);
 				}
 				else
 				{
 						waitpid(pid, &status, 0);
-						printf("%d %d\n", pid, status);
 						close(op);
 						if(status != 0){
 							unlink(namedup);
@@ -210,7 +212,6 @@ protected:
 				r_code = 404;
 
 		if (!strcmp(target_type, "CGI")){
-			printf("CGI is running\n");
 			r_code = 201;
 			target_name = CGI(target_name, target_type, buff);
 			if (!strcmp(target_name, "Error_in_CGI"))
