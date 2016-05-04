@@ -19,48 +19,27 @@ void response(int code, char* name, IOSocket *pSocket){
  	time(&rawtime);
  	timeinfo = localtime(&rawtime);
 
-	if (code == 404){
-		resp << "HTTP/1.1 404 Not Found \r\n"; 
-		resp << "Server: Model HTTP Server/0.1\r\n";
-		resp << "Date: ";
- 		resp << asctime(timeinfo);
-		int f = open("responses/404.html", O_RDONLY);
- 		resp <<"Content-type: text/html\r\n";
- 		resp <<"Content-length: " << lseek(f,0,2) << "\r\n\r\n";
- 		pSocket->Send(resp.str().c_str(), resp.str().size());
- 		char buff[BUFFSIZE];
- 		lseek(f,0,0);
- 		int k;
- 		while(k = read(f, buff, BUFFSIZE)){
- 			pSocket->Send(buff, k);
- 		}
- 		close(f);
+ 	char *descript = (char*) malloc(BUFFSIZE*sizeof(char));
+ 	char *myname = (char*) malloc(BUFFSIZE*sizeof(char));
 
+	if (code == 404){
+		descript = "404 Not Found";
+		myname = "responses/404.html";
 	}
 	else if(code == 200){
-		resp << "HTTP/1.1 200 OK \r\n";
-		resp << "Server: Model HTTP Server/0.1\r\n";
-		resp << "Date: ";
- 		resp << asctime(timeinfo);
-		int f = open(name, O_RDONLY);
- 		resp <<"Content-type: "<< define_type(name) <<" \r\n";
- 		resp <<"Content-length: " << lseek(f,0,2) << "\r\n\r\n";
- 		pSocket->Send(resp.str().c_str(), resp.str().size());
-
- 		char buff[BUFFSIZE];
- 		lseek(f,0,0);
- 		int k;
- 		while(k = read(f, buff, BUFFSIZE)){
- 			pSocket->Send(buff, k);
- 		}
- 		close(f);
+		descript = "200 OK";
+		myname = name;
 	}
 	else if (code == 403){
-		resp << "HTTP/1.1 403 Forbidden \r\n"; 
+		descript = "403 Forbidden";
+		myname = "responses/403.html";
+	}
+
+		resp << "HTTP/1.1 "<< descript <<" \r\n"; 
 		resp << "Server: Model HTTP Server/0.1\r\n";
 		resp << "Date: ";
  		resp << asctime(timeinfo);
-		int f = open("responses/403.html", O_RDONLY);
+		int f = open(myname, O_RDONLY);
  		resp <<"Content-type: text/html\r\n";
  		resp <<"Content-length: " << lseek(f,0,2) << "\r\n\r\n";
  		pSocket->Send(resp.str().c_str(), resp.str().size());
@@ -71,7 +50,7 @@ void response(int code, char* name, IOSocket *pSocket){
  			pSocket->Send(buff, k);
  		}
  		close(f);
-	}
+
 
 }
 
