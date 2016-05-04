@@ -58,6 +58,8 @@ char *define_type(char *name){
 void make_dir_list(void){
 	int pid;
 	if(pid = fork()){
+		int fd = open("dirlist.txt", O_WRONLY|O_TRUNC|O_CREAT, 0666);
+		dup2(fd, 1);
 		execlp("ls", "ls", "-R", "-l", NULL);
 		printf("Exec failed!\n");
 	}
@@ -77,8 +79,9 @@ int if_exist(char *name){
 	}
 }
 
+/*
 int main(int argc, char const *argv[])
 {
 	make_dir_list();
 	return 0;
-}
+}*/

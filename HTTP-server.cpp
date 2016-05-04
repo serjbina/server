@@ -4,7 +4,7 @@
 #include <string>
 #include <time.h>
 
-#include "response_code.h" //Заголовочные файлы функций, определяющих код ответа
+#include "response_code.h" //Содержит заголовочные файлы функций, определяющих код ответа
 #include "service_classes.cpp" //Содержит описание служебных классов
 
 #define BUFFSIZE 256
@@ -16,15 +16,15 @@ void response(int code, char* name, IOSocket *pSocket){
 
 	time_t rawtime;
  	struct tm * timeinfo;
- 	time ( &rawtime );
- 	timeinfo = localtime ( &rawtime );
+ 	time(&rawtime);
+ 	timeinfo = localtime(&rawtime);
 
 	if (code == 404){
 		resp << "HTTP/1.1 404 Not Found \r\n"; 
 		resp << "Server: Model HTTP Server/0.1\r\n";
 		resp << "Date: ";
  		resp << asctime(timeinfo);
-		int f = open("404.html", O_RDONLY);
+		int f = open("responses/404.html", O_RDONLY);
  		resp <<"Content-type: text/html\r\n";
  		resp <<"Content-length: " << lseek(f,0,2) << "\r\n\r\n";
  		pSocket->Send(resp.str().c_str(), resp.str().size());
@@ -73,13 +73,17 @@ protected:
 		char * target_type = define_type(target_name);
 
 		if (if_exist(target_name)){
-			printf("All Good in the HOOD\n");
+			printf("Respone code = 200, Required name = %s\n", target_name);
 			response(200, target_name, pSocket);
+			printf("Responsed succesfully\n");
+		}
+		else {
+			printf("Respone code = 404, Required name = %s\n", target_name);
+			response(404, target_name, pSocket);
+			printf("Responsed succesfully\n");
 		}
 		
-		delete pSocket;
-		printf("On Accept done done\n");
-		
+		delete pSocket;		
 	}
 };
 
@@ -87,6 +91,7 @@ void Run(ServerSocket *pSocket) {
 	pSocket->Listen();
 	for(;;) {
 		pSocket->Accept();
+		printf("Connection Accepted\n");
 	}
 }
 
@@ -96,6 +101,7 @@ int main() {
 	MySocket s;
 	SocketAddress a("localhost", 8080);
 	s.Bind(&a);
+	printf("Binded succesfully\n");
 	Run(&s);
 	return 0;
 }

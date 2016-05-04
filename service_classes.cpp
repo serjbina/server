@@ -36,10 +36,7 @@ class IOSocket: public Socket{
 public:
 	int Send(const void *buffer, size_t n)
 		{	
-			printf("send done\n");
 			int p=send(_sd,buffer,n,0); //_sd?
-			printf("send done done %d\n",p);
-			printf("send to socket %d\n",_sd);
 			return p;
 		}
 	
@@ -62,14 +59,12 @@ public:
 		const struct sockaddr p=(sockaddr&)t;
 		int p1;
 		p1= bind(_sd,  &p,sizeof(sockaddr));//
-		printf("bind done %d\n",p1);
 	};
 	
 	
 	void Listen()
-	{	printf("Listen done\n");
+	{	
 		listen(_sd,8);
-		printf("Listen done done %d\n",_sd);
 	}
 	virtual void Accept(void);
 
@@ -85,7 +80,6 @@ protected:
 
 
 void ServerSocket::Accept(void) {
-	printf("Accept done\n");
 	int sd;
 	
 	sd = accept(_sd, NULL, NULL);
