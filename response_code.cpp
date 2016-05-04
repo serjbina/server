@@ -5,6 +5,11 @@
 #include <fcntl.h>
 #include <sys/wait.h>
 
+#include <errno.h>
+
+#include <sys/types.h>
+#include <sys/stat.h>
+
 char* find_name(char * buff)
 {
 		char *name = (char*) malloc (80*sizeof(char));
@@ -70,18 +75,26 @@ void make_dir_list(void){
 }
 
 int if_exist(char *name){
-	int marker = open(name, O_RDONLY);
+	struct stat buff;
+	int marker = stat(name, &buff);
 	if (marker == -1)
 		return 0;
-	else{
-		close(marker);
+	else
 		return 1;
-	}
+}
+
+int if_availible(char *name){
+	int f = open(name, O_RDONLY);
+	if (f == -1)
+		return 0;
+	else
+		return 1;
 }
 
 /*
 int main(int argc, char const *argv[])
 {
-	make_dir_list();
+	int f = if_exist("example.txt");
+	printf("%d\n", f);
 	return 0;
 }*/

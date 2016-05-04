@@ -38,7 +38,6 @@ void response(int code, char* name, IOSocket *pSocket){
 
 	}
 	else if(code == 200){
-
 		resp << "HTTP/1.1 200 OK \r\n";
 		resp << "Server: Model HTTP Server/0.1\r\n";
 		resp << "Date: ";
@@ -48,6 +47,23 @@ void response(int code, char* name, IOSocket *pSocket){
  		resp <<"Content-length: " << lseek(f,0,2) << "\r\n\r\n";
  		pSocket->Send(resp.str().c_str(), resp.str().size());
 
+ 		char buff[BUFFSIZE];
+ 		lseek(f,0,0);
+ 		int k;
+ 		while(k = read(f, buff, BUFFSIZE)){
+ 			pSocket->Send(buff, k);
+ 		}
+ 		close(f);
+	}
+	else if (code == 403){
+		resp << "HTTP/1.1 403 Forbidden \r\n"; 
+		resp << "Server: Model HTTP Server/0.1\r\n";
+		resp << "Date: ";
+ 		resp << asctime(timeinfo);
+		int f = open("responses/403.html", O_RDONLY);
+ 		resp <<"Content-type: text/html\r\n";
+ 		resp <<"Content-length: " << lseek(f,0,2) << "\r\n\r\n";
+ 		pSocket->Send(resp.str().c_str(), resp.str().size());
  		char buff[BUFFSIZE];
  		lseek(f,0,0);
  		int k;
@@ -72,17 +88,20 @@ protected:
 		char * target_name = find_name(buff);
 		char * target_type = define_type(target_name);
 
+		int r_code;
 		if (if_exist(target_name)){
-			printf("Respone code = 200, Required name = %s\n", target_name);
-			response(200, target_name, pSocket);
-			printf("Responsed succesfully\n");
+			if(if_availible(target_name))
+				r_code = 200;
+			else
+				r_code = 403;
 		}
-		else {
-			printf("Respone code = 404, Required name = %s\n", target_name);
-			response(404, target_name, pSocket);
-			printf("Responsed succesfully\n");
-		}
+		else 
+			r_code = 404;
 		
+		printf("Respone code = %d, Required name = %s\n", r_code, target_name);
+		response(r_code, target_name, pSocket);
+		printf("Responsed succesfully\n");
+			
 		delete pSocket;		
 	}
 };
