@@ -24,10 +24,12 @@ char* find_name(char * buff)
 		while(*buff == ' ')
 			buff++;
 
-		while(*buff != ' '){
+		while(*buff != ' '){				
 			*p = *buff;
 			p++;
 			buff++;
+			if (*buff == '?')
+				break;
 		}
 
 		*p = '\0';
@@ -41,8 +43,15 @@ char* find_name(char * buff)
 
 char *define_type( char *name){
 	char *p = (char *) name;
-	while (*p != '.')
+	char *type = (char*) malloc (12*sizeof(char));
+	while (*p != '.' || *p != '?')
 		p++;
+
+	if(*p == '?'){
+		type = (char *) "CGI";
+		return type;
+	}
+
 	p++;
 	char buff[50];
 	char *a = buff;
@@ -54,7 +63,6 @@ char *define_type( char *name){
 	*a = '\0';
 
 	
-	char *type = (char*) malloc (12*sizeof(char));
 	//string type;
 	if(!strcmp(buff, "html"))
 		type =  (char *) "text/html";
