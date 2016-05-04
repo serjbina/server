@@ -160,16 +160,22 @@ char * CGI(char * target_name, char *target_type, char * buff){ //Возвращ
 					printf("%s\n",cgipar[y]);
 
 				int status;
-				if(!fork())
+				int pid;
+				if(!(pid = fork()))
 				{	
+					printf("%d\n", getpid());
 					close(1);
+					
 					dup2(op,1); 
+					
 					execvpe(PathName,(char* const *)NULL,(char * const *)cgipar);
 					fprintf(stderr, "Error on exec %s\n",strerror(errno));
 					exit(5);
 				}
-				else{
-						wait(&status);
+				else
+				{
+						waitpid(pid, &status, 0);
+						printf("%d %d\n", pid, status);
 						close(op);
 						if(status != 0){
 							unlink(namedup);
